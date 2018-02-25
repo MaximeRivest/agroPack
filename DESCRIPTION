@@ -19,4 +19,9 @@ Imports: phyloseq,
     MuMIn,
     stringr,
     FD,
-    picante
+    picante,
+    psych,
+    ape,
+    dplyr,
+    magrittr,
+    purrr

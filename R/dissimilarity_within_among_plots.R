@@ -1,0 +1,7 @@
+# m <- as.matrix(bray_ident)
+# test <- data.frame(col=colnames(m)[col(m)], row=rownames(m)[row(m)], dist=c(m))
+# test$col <- substring(test$col, 2,10)
+# test$row <- substring(test$row, 2,10)
+# test1 <- filter(test, dist != 0) %>% mutate(same_trt = col == row)
+# ggplot(test1, aes( x = same_trt, y = dist)) + geom_boxplot()
+# t.test(x = filter(test1, same_trt == T)$dist,y = filter(test1, same_trt == F)$dist)

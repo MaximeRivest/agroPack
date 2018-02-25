@@ -36,7 +36,7 @@ plot_beta_diversity <- function(){
     #table(tmpdf$trt)
     rownames(otu_ident_f) <-toupper(paste0(tmpdf$plot, tmpdf$trt))
     sotu <- otu_ident_f[sort(rownames(otu_ident_f)),]
-    bray_ident <- vegan::vegdist(sotu, method='bray')
+    bray_ident <- vegan::vegdist(as(sotu, 'matrix'), method='jaccard', binary = F)
     a <- a[!rownames(a) %in% 'APIST',]
     a <- a[!rownames(a) %in% 'BPIRE',]
     sa <- a[sort(rownames(sotu)),]
@@ -50,7 +50,9 @@ plot_beta_diversity <- function(){
     arbre_uni <- picante::unifrac(a[row.names(sotu),c(-1,-2)],tree_ar)
 
     # soil distance matrix
-    env_df <- dplyr::select(phyloseq::sample_data(ps_df), pH, C, N)
+    env_df <- dplyr::select(phyloseq::sample_data(ps_df), pH, C, N,no3_med, nh4_med)
+    env_df <- purrr::map_df(env_df, scale)
+    env_df <- as.data.frame(env_df)
     rownames(env_df) <-toupper(paste0(tmpdf$plot, tmpdf$trt))
     env_df <- as.matrix(env_df[sort(rownames(sotu)),])
     eucl_env <- dist(env_df)
@@ -68,9 +70,13 @@ plot_beta_diversity <- function(){
     tokeep <- paste0(tokeep[,1], tokeep[,2])
     sgenus <- na.omit(sgenus[tokeep,])
     sgenus <- sgenus[,!colSums(sgenus) == 0]
+    sgenus <- sgenus[sort(rownames(sgenus)),]
     bray_ident <- vegan::vegdist(sgenus, method='bray')
-    sa <- a[sort(rownames(sgenus)),]
-    bc_arbre <- vegan::vegdist(as.matrix(sa[,3:ncol(sa)]))
+    data(a)
+    sa <- a[rownames(sgenus),]
+    san <- dplyr::select(sa,ABBA:ncol(sa))
+    san <- na.omit(san[,which(colSums(san, na.rm =T)>0)])
+    bc_arbre <- vegan::vegdist(san)
 
     # bacteria dissbray_ident_f
     tmpdf <- data.frame(plot=phyloseq::sample_data(bakocommun)$Plot,
@@ -113,17 +119,20 @@ plot_beta_diversity <- function(){
     # functional dissimilarity
     data_cwm <- FD::dbFD(as.data.frame(scale(x)),a[,c(-1, -2)], calc.FRic= T, calc.FDiv= T)$CWM
     data_cwm <- data_cwm[row.names(sgenus),]
+    data_cwm <- na.omit(data_cwm)
     eucl_func_arbre <- dist(data_cwm)
 
     # phylogenetic distance
-    arbre_uni <- picante::unifrac(a[row.names(sgenus),c(-1,-2)],tree_ar)
+    arbre_uni <- picante::unifrac(san,tree_ar)
 
     # soil distance matrix
-    env_df <- dplyr::select(phyloseq::sample_data(fungocommun), pH, C, N)
+    env_df <- dplyr::select(phyloseq::sample_data(fungocommun), pH, C, N, no3_med, nh4_med)
     tmpdf <- data.frame(plot=phyloseq::sample_data(fungocommun)$Plot,
                         trt=phyloseq::sample_data(fungocommun)$Trtment)
     tmpdf$trt <- stringr::str_replace(tmpdf$trt,'^1(.*?)$', '\\1')
     tmpdf$trt <- stringr::str_replace(tmpdf$trt,'^2n$', '12n')
+    env_df <- purrr::map_df(env_df, scale)
+    env_df <- as.data.frame(env_df)
     rownames(env_df) <-toupper(paste0(tmpdf$plot, tmpdf$trt))
     env_df <- as.matrix(env_df[sort(rownames(sgenus)),])
     eucl_env <- dist(env_df)
@@ -147,7 +156,7 @@ plot_beta_diversity <- function(){
   counter <- 1
   for(i in bc_df_b$arbre){
     my_list$b$tmp <- list(mantel_test_p = NULL)
-    my_list$b$tmp$mantel_test_p <- mantel.test(as.matrix(bc_df_b$bc_microbe), as.matrix(i))$p
+    my_list$b$tmp$mantel_test_p <- ape::mantel.test(as.matrix(bc_df_b$bc_microbe), as.matrix(i))$p
     tmpdf <- data.frame(fung = c(as.matrix(bc_df_b$bc_microbe)),arbre = c( as.matrix(i)))
     tmpdf <- dplyr::filter(tmpdf, fung != 0, arbre != 0)
     mantel_reg <- phytools::multi.mantel(bc_df_b$bc_microbe, i, nperm = 100)
@@ -165,7 +174,7 @@ plot_beta_diversity <- function(){
   bc_df_n$bc_microbe_n
   for(i in bc_df_f$arbre){
     my_list$f$tmp <- list(mantel_test_p = NULL)
-    my_list$f$tmp$mantel_test_p <- mantel.test(as.matrix(bc_df_f$bc_microbe), as.matrix(i))$p
+    my_list$f$tmp$mantel_test_p <- ape::mantel.test(as.matrix(bc_df_f$bc_microbe), as.matrix(i))$p
     tmpdf <- data.frame(fung = c(as.matrix(bc_df_f$bc_microbe)),arbre = c( as.matrix(i)))
     tmpdf <- dplyr::filter(tmpdf, fung != 0, arbre != 0)
     mantel_reg <- phytools::multi.mantel(bc_df_f$bc_microbe, i, nperm = 100)
@@ -182,7 +191,7 @@ plot_beta_diversity <- function(){
   counter <- 1
   for(i in bc_df_n$arbre){
     my_list$n$tmp <- list(mantel_test_p = NULL)
-    my_list$n$tmp$mantel_test_p <- mantel.test(as.matrix(bc_df_n$bc_microbe_n), as.matrix(i))$p
+    my_list$n$tmp$mantel_test_p <- ape::mantel.test(as.matrix(bc_df_n$bc_microbe_n), as.matrix(i))$p
     tmpdf <- data.frame(fung = c(as.matrix(bc_df_n$bc_microbe_n)),arbre = c( as.matrix(i)))
     tmpdf <- dplyr::filter(tmpdf, fung != 0, arbre != 0)
     mantel_reg <- phytools::multi.mantel(bc_df_n$bc_microbe_n, i, nperm = 100)
@@ -196,8 +205,8 @@ plot_beta_diversity <- function(){
     counter <- 1 + counter
   }
   #---- Correlation (rho) between nematode and bacteria and fungi --------------
-  my_list$nbf$mantel_b <-  mantel(as.matrix(bc_df_n$bc_microbe_n_b), as.matrix(bc_df_n$bc_microbe_b))
-  my_list$nbf$mantel_f <- mantel(as.matrix(bc_df_n$bc_microbe_n_f), as.matrix(bc_df_n$bc_microbe_f))
+  my_list$nbf$mantel_b <-  vegan::mantel(as.matrix(bc_df_n$bc_microbe_n_b), as.matrix(bc_df_n$bc_microbe_b))
+  my_list$nbf$mantel_f <- vegan::mantel(as.matrix(bc_df_n$bc_microbe_n_f), as.matrix(bc_df_n$bc_microbe_f))
   tmpdf <- data.frame(nematode = c(c(as.matrix(bc_df_n$bc_microbe_n_b)), c(as.matrix(bc_df_n$bc_microbe_n_f))),
                       dissimilarity = c(c( as.matrix(bc_df_n$bc_microbe_b),c(as.matrix(bc_df_n$bc_microbe_f)))),
                       group = c(rep('bacteria', length(c(as.matrix(bc_df_n$bc_microbe_n_b)))),
@@ -210,7 +219,7 @@ plot_beta_diversity <- function(){
   #---- Correlation (rho) between fungi and bacteria ---------------------------
   bc_df_bako <- prep_bc_dfs(bakorare)
   bc_df_fung <- prep_bc_dfs(fungoraref)
-  my_list$bf$mantel <- mantel(as.matrix(bc_df_bako$bc_microbe), as.matrix(bc_df_fung$bc_microbe))
+  my_list$bf$mantel <- vegan::mantel(as.matrix(bc_df_bako$bc_microbe), as.matrix(bc_df_fung$bc_microbe))
   tmpdf <- data.frame(fungi = c(as.matrix(bc_df_fung$bc_microbe)),bacteria = c( as.matrix(bc_df_bako$bc_microbe)))
   tmpdf <- dplyr::filter(tmpdf, fungi != 0, bacteria != 0)
   my_list$bf$plot <- ggplot2::ggplot(tmpdf, ggplot2::aes(x=bacteria, y=fungi)) +
