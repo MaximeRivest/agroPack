@@ -1,4 +1,4 @@
-Package: IdentPack
+Package: agroPack
 Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1.0
@@ -9,19 +9,11 @@ Description: More about what it does (maybe more than one line)
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
-Imports: phyloseq,
-    igraph,
-    vegan,
-    ggplot2,
-    gridExtra,
-    multcomp,
+Imports: 
+    phyloseq,
     nlme,
-    MuMIn,
-    stringr,
-    FD,
-    picante,
-    psych,
-    ape,
-    dplyr,
-    magrittr,
-    purrr
+    lmerTest,
+    ggplot2,
+    grid,
+    ggthemes
+RoxygenNote: 6.1.1

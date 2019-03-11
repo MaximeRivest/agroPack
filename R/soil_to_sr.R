@@ -30,13 +30,13 @@ soil_to_sr <- function(){
 
   bkcf_no_NA <- filter(bkcf, !is.na(percent_gymnosperm) & !is.na(C) & !is.na(pH) & !is.na(no3_med)) %>%
     select(shannon_bc, percent_gymnosperm, C, N, pH, no3_med, nh4_med, Plot, DIV, fun_div)
-  lme1 <- nlme::lme(exp(shannon_bc) ~ percent_gymnosperm + C + pH + no3_med, random  = ~1 | Plot,data=bkcf_no_NA)
+  lme1 <- nlme::lme(exp(shannon_bc) ~ C + pH + no3_med, random  = ~1 | Plot,data=bkcf_no_NA)
   my_list$summary_lme1f <- summary(lme1)
   my_list$rsquaref <- MuMIn::r.squaredGLMM(lme1)
 
   bkcb_no_NA <- filter(bkcb, !is.na(percent_gymnosperm) & !is.na(C) & !is.na(pH) & !is.na(no3_med)) %>%
-    select(shannon_bc, percent_gymnosperm, C, N, pH, no3_med, nh4_med, Plot, DIV, fun_div)
-  lme1 <- nlme::lme(exp(shannon_bc) ~ percent_gymnosperm + C + pH + no3_med, random  = ~1 | Plot,data=bkcb_no_NA)
+    select(shannon_bc, C, N, pH, no3_med, nh4_med, Plot, DIV, fun_div)
+  lme1 <- nlme::lme(exp(shannon_bc) ~  C + pH + no3_med, random  = ~1 | Plot,data=bkcb_no_NA)
   my_list$summary_lme1b <- summary(lme1)
   my_list$rsquareb <- MuMIn::r.squaredGLMM(lme1)
 
