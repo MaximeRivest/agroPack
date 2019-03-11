@@ -2,26 +2,18 @@ Using the agroPack package to generate the results
 ================
 
 -   [Introduction](#introduction)
--   [From data to reading list](#from-data-to-reading-list)
-    -   [loading the packages](#loading-the-packages)
-    -   [Give path to my document](#give-path-to-my-document)
-    -   [From sequencing data to richness](#from-sequencing-data-to-richness)
-    -   [From earthworm species occurence table to diversity metrics](#from-earthworm-species-occurence-table-to-diversity-metrics)
-    -   [Preparation of the list of variable](#preparation-of-the-list-of-variable)
-    -   [Statistical analysis](#statistical-analysis)
-    -   [Plots](#plots)
+-   [loading the packages](#loading-the-packages)
+-   [Give path to my document](#give-path-to-my-document)
+-   [From sequencing data to richness](#from-sequencing-data-to-richness)
+-   [From earthworm species occurence table to diversity metrics](#from-earthworm-species-occurence-table-to-diversity-metrics)
+-   [Preparation of the list of variable](#preparation-of-the-list-of-variable)
+-   [Statistical analysis](#statistical-analysis)
+-   [Plots](#plots)
 
 Introduction
-============
+------------
 
 agroPack contains the data and the functions used to analyse the relationship between soil biodiversity and windbreaks in arable lands of southern Quebec
-
-<a href="#top">Back to top</a>
-
-From data to reading list
-=========================
-
-You can automatically generate a reading list of seminal papers in a research litterature by using only those three functions: `ìmport_wos_files`, `scimap`, and `scilist`. This first section describes this process in more details.
 
 <a href="#top">Back to top</a>
 
@@ -36,6 +28,8 @@ library(ggplot2)
 library(dplyr)
 ```
 
+<a href="#top">Back to top</a>
+
 Give path to my document
 ------------------------
 
@@ -45,6 +39,8 @@ I use two computers with exactly the some content in "Documents" but one is host
 #cur_dir <- "/media/bigdrive/document_FedoraFall2018/"
 cur_dir <- "~/Documents/"
 ```
+
+<a href="#top">Back to top</a>
 
 From sequencing data to richness
 --------------------------------
@@ -138,6 +134,8 @@ dplyr::left_join(main_data, sha_bako) %>%
     ## Warning: Column `Sample_ID` joining character vector and factor, coercing
     ## into character vector
 
+<a href="#top">Back to top</a>
+
 From earthworm species occurence table to diversity metrics
 -----------------------------------------------------------
 
@@ -229,6 +227,8 @@ ls_dependent_variables_to_edge_distance <- list(
   )
 )
 ```
+
+<a href="#top">Back to top</a>
 
 Statistical analysis
 --------------------
@@ -322,6 +322,8 @@ all_comps %>%
 write.csv(all_comps, paste0(cur_dir, "/Msc/manuscript_nem_vdt_david_jan29/data/multiple_comparaisons.csv"))
 ```
 
+<a href="#top">Back to top</a>
+
 Plots
 -----
 
@@ -373,3 +375,5 @@ for(i in 1:length(ls_dependent_variables_to_edge_distance)){
 #                         p_ph, ncol = 3)
 # dev.off()
 ```
+
+<a href="#top">Back to top</a>
