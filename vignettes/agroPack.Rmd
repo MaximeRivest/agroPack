@@ -1,109 +1,65 @@
-Using the agroPack package to generate the results
-================
-
--   [Introduction](#introduction)
--   [From data to reading list](#from-data-to-reading-list)
-    -   [loading the packages](#loading-the-packages)
-    -   [Give path to my document](#give-path-to-my-document)
-    -   [From sequencing data to richness](#from-sequencing-data-to-richness)
-    -   [From earthworm species occurence table to diversity metrics](#from-earthworm-species-occurence-table-to-diversity-metrics)
-    -   [Preparation of the list of variable](#preparation-of-the-list-of-variable)
-    -   [Statistical analysis](#statistical-analysis)
-    -   [Plots](#plots)
-
-Introduction
-============
+---
+title: "Using the agroPack package to generate the results"
+author: "Maxime Rivest"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to scimeetr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+#Introduction
 
 agroPack contains the data and the functions used to analyse the relationship between soil biodiversity and windbreaks in arable lands of southern Quebec
 
 <a href="#top">Back to top</a>
 
-From data to reading list
-=========================
+#From data to reading list
 
 You can automatically generate a reading list of seminal papers in a research litterature by using only those three functions: `ìmport_wos_files`, `scimap`, and `scilist`. This first section describes this process in more details.
 
 <a href="#top">Back to top</a>
 
-loading the packages
---------------------
+##loading the packages
 
 Throughout the code I use agroPack. Which can be installed with `devtools::install_github("maximerivest/agroPack")`. I also use `dplyr` and `ggplot2`, both available on `CRAN`.
 
-``` r
+```{r, include=FALSE}
+library(agroPack)
+library(ggplot2)
+library(dplyr)
+```
+```{r, eval=FALSE}
 library(agroPack)
 library(ggplot2)
 library(dplyr)
 ```
 
-Give path to my document
-------------------------
+## Give path to my document
 
 I use two computers with exactly the some content in "Documents" but one is hosted on a different hardrive. Depending where I run this script I comment in/out either of the paths.
 
-``` r
+```{r}
 #cur_dir <- "/media/bigdrive/document_FedoraFall2018/"
 cur_dir <- "~/Documents/"
 ```
 
-From sequencing data to richness
---------------------------------
 
-I inserted data into the package. I tend to load raw data into the package and do the transformation here. So the following lines of codes transforms the OTU data.table into species diversity metric. I start from a `phyloseq` data structure, use phyloseq for some filtering and transformation and then I extract the otu\_table and match rownames. Finally, this data structure can be feed into a vegan function.
 
-``` r
+## From sequencing data to richness
+
+I inserted data into the package. I tend to load raw data into the package and do the transformation here. So the following lines of codes transforms the OTU data.table into species diversity metric. I start from a `phyloseq` data structure, use phyloseq for some filtering and transformation and then I extract the otu_table and match rownames. Finally, this data structure can be feed into a vegan function.
+
+```{r}
 bako <- baktps
 fungo <- fungips
 #---- Rarefy to even depth and Compute shannon diversity -----------------------
 set.seed(100)
 fungo = phyloseq::filter_taxa(fungo, function(x) sum(x) > 1, TRUE)
 fungo = phyloseq::rarefy_even_depth(fungo, sample.size = 2200)
-```
-
-    ## You set `rngseed` to FALSE. Make sure you've set & recorded
-    ##  the random seed of your session for reproducibility.
-    ## See `?set.seed`
-
-    ## ...
-
-    ## 5 samples removedbecause they contained fewer reads than `sample.size`.
-
-    ## Up to first five removed samples are:
-
-    ## 36288289290291   
-
-    ## ...
-
-    ## 61OTUs were removed because they are no longer 
-    ## present in any sample after random subsampling
-
-    ## ...
-
-``` r
 bako = phyloseq::filter_taxa(bako, function(x) sum(x) > 1, TRUE)
 bako = phyloseq::rarefy_even_depth(bako, sample.size = 9500)
-```
 
-    ## You set `rngseed` to FALSE. Make sure you've set & recorded
-    ##  the random seed of your session for reproducibility.
-    ## See `?set.seed`
-    ## 
-    ## ...
-
-    ## 4 samples removedbecause they contained fewer reads than `sample.size`.
-
-    ## Up to first five removed samples are:
-
-    ## 289290291348 
-
-    ## ...
-
-    ## 15OTUs were removed because they are no longer 
-    ## present in any sample after random subsampling
-
-    ## ...
-
-``` r
 shannon_bakt <- vegan::diversity(phyloseq::otu_table(bako),'shannon')
 shannon_fung <- vegan::diversity(phyloseq::otu_table(fungo),'shannon')
 
@@ -128,22 +84,11 @@ dplyr::left_join(main_data, sha_bako) %>%
   dplyr::left_join(sha_fung) -> main_data
 ```
 
-    ## Joining, by = "Sample_ID"
-
-    ## Warning: Column `Sample_ID` joining factors with different levels, coercing
-    ## to character vector
-
-    ## Joining, by = "Sample_ID"
-
-    ## Warning: Column `Sample_ID` joining character vector and factor, coercing
-    ## into character vector
-
-From earthworm species occurence table to diversity metrics
------------------------------------------------------------
+## From earthworm species occurence table to diversity metrics
 
 Same type of things as for bacteria and fungi but with a bit less filtering and without using `phyloseq` because earthworms data are based on actuall individual sampling rather than sequencing data.
 
-``` r
+```{r}
 # Earthworms
 names(earthworm_community)[1] <- "Sample_ID"
 mat_ea <- as.matrix(earthworm_community[,2:9])
@@ -155,17 +100,12 @@ sha_worm <- data.frame(row.names = earthworm_community$Sample_ID,
 main_data <- dplyr::left_join(main_data, sha_worm)
 ```
 
-    ## Joining, by = "Sample_ID"
+## Preparation of the list of variable
 
-    ## Warning: Column `Sample_ID` joining character vector and factor, coercing
-    ## into character vector
+Here, I will be preparing a list with all the data and parameters that I use for the statistical analysis.
+I am making very similar plots and statistics as I related several dependent variables to one independent variable, namely "distance from the windbreaks".
 
-Preparation of the list of variable
------------------------------------
-
-Here, I will be preparing a list with all the data and parameters that I use for the statistical analysis. I am making very similar plots and statistics as I related several dependent variables to one independent variable, namely "distance from the windbreaks".
-
-``` r
+```{r}
 ls_dependent_variables_to_edge_distance <- list(
   water_content = list(varname = "Gravimetric humidity",
                        ylab = "Gravimetric humidity",
@@ -230,12 +170,14 @@ ls_dependent_variables_to_edge_distance <- list(
 )
 ```
 
-Statistical analysis
---------------------
 
-Here, I use the function that I created to make mix effect linear regression, mixed effect Anova, and multiple comparaison of mix effect linear regression (with factors). Within this code chunk, I also make tables of results that I export to csv.
+## Statistical analysis
 
-``` r
+Here, I use the function that I created to make mix effect linear regression, mixed effect Anova, and multiple comparaison of mix effect linear regression (with factors).
+Within this code chunk, I also make tables of results that I export to csv.
+
+```{r}
+
 for(i in 1:length(ls_dependent_variables_to_edge_distance)){
   ls_dependent_variables_to_edge_distance[[i]]$stats <- 
     stats_for_soil_properties(ls_dependent_variables_to_edge_distance[[i]]$dataset$for_stat)
@@ -272,47 +214,7 @@ for(i in 1:length(ls_dependent_variables_to_edge_distance)){
 }
 
 all_comps <- bind_rows(list_table_multcomp)
-```
 
-    ## Warning in bind_rows_(x, .id): Unequal factor levels: coercing to character
-
-    ## Warning in bind_rows_(x, .id): binding character and factor vector,
-    ## coercing into character vector
-
-    ## Warning in bind_rows_(x, .id): binding character and factor vector,
-    ## coercing into character vector
-
-    ## Warning in bind_rows_(x, .id): binding character and factor vector,
-    ## coercing into character vector
-
-    ## Warning in bind_rows_(x, .id): binding character and factor vector,
-    ## coercing into character vector
-
-    ## Warning in bind_rows_(x, .id): binding character and factor vector,
-    ## coercing into character vector
-
-    ## Warning in bind_rows_(x, .id): binding character and factor vector,
-    ## coercing into character vector
-
-    ## Warning in bind_rows_(x, .id): binding character and factor vector,
-    ## coercing into character vector
-
-    ## Warning in bind_rows_(x, .id): binding character and factor vector,
-    ## coercing into character vector
-
-    ## Warning in bind_rows_(x, .id): binding character and factor vector,
-    ## coercing into character vector
-
-    ## Warning in bind_rows_(x, .id): binding character and factor vector,
-    ## coercing into character vector
-
-    ## Warning in bind_rows_(x, .id): binding character and factor vector,
-    ## coercing into character vector
-
-    ## Warning in bind_rows_(x, .id): binding character and factor vector,
-    ## coercing into character vector
-
-``` r
 all_comps %>%
   mutate(
     "Benjamini-Hochberg corrected p-value" = format(`p-value`/dplyr::percent_rank(`p-value`), scientific=F),
@@ -322,12 +224,13 @@ all_comps %>%
 write.csv(all_comps, paste0(cur_dir, "/Msc/manuscript_nem_vdt_david_jan29/data/multiple_comparaisons.csv"))
 ```
 
-Plots
------
+## Plots
 
-Here, I use the function that I created to make boxplots of the dependent variable as a function of windbreak distance. Within this code chunk, I also save the plots as png.
+Here, I use the function that I created to make boxplots of the dependent variable as a function of windbreak distance.
+Within this code chunk, I also save the plots as png.
 
-``` r
+```{r}
+
 for(i in 1:length(ls_dependent_variables_to_edge_distance)){
   ls_dependent_variables_to_edge_distance[[i]]$boxplot_dist <- 
     plot_for_soil_properties(ls_dependent_variables_to_edge_distance[[i]]$stats, 
@@ -373,3 +276,4 @@ for(i in 1:length(ls_dependent_variables_to_edge_distance)){
 #                         p_ph, ncol = 3)
 # dev.off()
 ```
+
